@@ -1,0 +1,97 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>YouTube Local Downloader</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+</head>
+<body>
+    <main class="container">
+        <section class="card">
+            <div class="icon">▶</div>
+            <h1>YouTube Downloader</h1>
+            <p class="subtitle">Enter a YouTube video URL.</p>
+
+            <form id="downloadForm">
+                <label for="youtubeUrl">YouTube URL</label>
+                <div class="input-row">
+                    <input
+                        id="youtubeUrl"
+                        name="youtubeUrl"
+                        type="url"
+                        placeholder="https://www.youtube.com/watch?v=..."
+                        autocomplete="off"
+                        required
+                    >
+                    <button id="downloadButton" type="submit">
+                        Download
+                    </button>
+                </div>
+            </form>
+
+            <div id="status" class="status hidden"></div>
+
+            <div class="output">
+                <strong>Download folder</strong>
+                <code>/Downloads</code>
+            </div>
+
+            <p class="notice">
+                This application is a private property of MCGI Dallas.
+                Use it only for contents you are authorized to download.
+            </p>
+        </section>
+    </main>
+
+    <script>
+        const form = document.getElementById("downloadForm");
+        const input = document.getElementById("youtubeUrl");
+        const button = document.getElementById("downloadButton");
+        const status = document.getElementById("status");
+
+        function showStatus(message, type) {
+            status.textContent = message;
+            status.className = "status " + type;
+        }
+
+        form.addEventListener("submit", async (event) => {
+            event.preventDefault();
+
+            const url = input.value.trim();
+
+            if (!url) {
+                showStatus("Please enter a YouTube URL.", "error");
+                return;
+            }
+
+            button.disabled = true;
+            button.textContent = "Downloading...";
+            showStatus("Starting download. This may take a while...", "working");
+
+            try {
+                const response = await fetch("/download", {
+                    method: "POST",
+                    headers: {
+                        "Content-Type": "application/json"
+                    },
+                    body: JSON.stringify({ url })
+                });
+
+                const data = await response.json();
+
+                if (!response.ok || !data.success) {
+                    throw new Error(data.message || "Download failed.");
+                }
+
+                showStatus(data.message, "success");
+            } catch (error) {
+                showStatus(error.message, "error");
+            } finally {
+                button.disabled = false;
+                button.textContent = "Download";
+            }
+        });
+    </script>
+</body>
+</html>

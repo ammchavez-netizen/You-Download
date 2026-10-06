@@ -1,0 +1,164 @@
+* {
+    box-sizing: border-box;
+}
+
+body {
+    margin: 0;
+    min-height: 100vh;
+    font-family: "Segoe UI", Arial, sans-serif;
+    background: #f3f5f8;
+    color: #20242a;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.container {
+    width: 100%;
+    max-width: 760px;
+    padding: 24px;
+}
+
+.card {
+    background: white;
+    border-radius: 18px;
+    padding: 42px;
+    box-shadow: 0 12px 35px rgba(0, 0, 0, 0.08);
+}
+
+.icon {
+    width: 58px;
+    height: 58px;
+    border-radius: 50%;
+    background: #20242a;
+    color: white;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 25px;
+    margin-bottom: 20px;
+}
+
+h1 {
+    margin: 0 0 8px;
+    font-size: 32px;
+}
+
+.subtitle {
+    margin: 0 0 30px;
+    color: #66707a;
+    font-size: 16px;
+}
+
+label {
+    display: block;
+    margin-bottom: 8px;
+    font-weight: 600;
+}
+
+.input-row {
+    display: flex;
+    gap: 10px;
+}
+
+input {
+    flex: 1;
+    min-width: 0;
+    padding: 14px 16px;
+    border: 1px solid #cbd1d8;
+    border-radius: 9px;
+    font-size: 15px;
+    outline: none;
+}
+
+input:focus {
+    border-color: #606a75;
+    box-shadow: 0 0 0 3px rgba(96, 106, 117, 0.12);
+}
+
+button {
+    border: 0;
+    border-radius: 9px;
+    padding: 0 22px;
+    background: #20242a;
+    color: white;
+    font-size: 15px;
+    font-weight: 600;
+    cursor: pointer;
+}
+
+button:hover {
+    background: #353b43;
+}
+
+button:disabled {
+    opacity: 0.6;
+    cursor: wait;
+}
+
+.status {
+    margin-top: 18px;
+    padding: 14px 16px;
+    border-radius: 9px;
+    white-space: pre-wrap;
+    word-break: break-word;
+}
+
+.status.hidden {
+    display: none;
+}
+
+.status.working {
+    background: #eef2f6;
+    color: #39434e;
+}
+
+.status.success {
+    background: #eaf7ee;
+    color: #17652f;
+}
+
+.status.error {
+    background: #fdecec;
+    color: #9c2525;
+}
+
+.output {
+    margin-top: 24px;
+    padding: 15px;
+    background: #f6f7f9;
+    border-radius: 9px;
+    display: flex;
+    flex-direction: column;
+    gap: 5px;
+}
+
+.output code {
+    font-family: Consolas, monospace;
+    color: #59636e;
+}
+
+.notice {
+    margin: 20px 0 0;
+    font-size: 12px;
+    line-height: 1.5;
+    color: #7b838c;
+}
+
+@media (max-width: 620px) {
+    .card {
+        padding: 28px 22px;
+    }
+
+    h1 {
+        font-size: 27px;
+    }
+
+    .input-row {
+        flex-direction: column;
+    }
+
+    button {
+        height: 48px;
+    }
+}
