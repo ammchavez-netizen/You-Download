@@ -1,9 +1,4 @@
-# YouTube Local Downloader
-
-# New addition
-You need to install the following using powershell:
-winget install Gyan.FFmpeg.Shared
-winget install DenoLand.Deno
+# YouTube Video Downloader
 
 A simple Windows 11 local web application using:
 
@@ -16,10 +11,20 @@ A simple Windows 11 local web application using:
 ## 1. Requirements
 
 Install Python 3.10 or newer.
+	
+	winget install Python.Python.3.12
 
 During Python installation, enable:
 
     Add python.exe to PATH
+
+Install the FFmpeg package.
+
+	winget install Gyan.FFmpeg.Shared
+
+Install the JS runtime Deno
+
+	winget install DenoLand.Deno
 
 ## 2. Setup
 
@@ -45,11 +50,11 @@ Paste a YouTube URL into the webpage and click Download.
 
 Downloaded files are saved in:
 
-    downloads\
+    /Downloads
 
 ## How it works
 
-Browser -> Flask -> downloader.py -> yt-dlp -> downloads\
+Browser -> Flask -> downloader.py -> yt-dlp -> /Downloads
 
 The URL is passed to Python as an argument rather than being placed
 directly into a shell command.
