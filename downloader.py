@@ -9,6 +9,7 @@ to download and use.
 """
 
 import sys
+import os
 from pathlib import Path
     
 try:
@@ -52,6 +53,7 @@ def download_video(url: str, output_dir: str) -> None:
         ydl.download([url])
 
     print(f"\nDownload completed!\nFile is saved in: {output_path.resolve()}")
+    os.startfile(output_path)
 
 
 if __name__ == "__main__":
