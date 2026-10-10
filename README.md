@@ -40,9 +40,13 @@ Double-click:
 
     start.bat
 
-Then open:
+Optional:
 
-    http://127.0.0.1:5000
+    - Create a shortcut of start.bat on desktop.
+
+    - Change the icon using image-_7_.ico.
+
+    - Rename the start.bat shortcut.
 
 ## 4. Download
 
