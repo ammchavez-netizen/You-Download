@@ -100,8 +100,11 @@ cursor: wait;
 margin-top: 18px;
 padding: 14px 16px;
 border-radius: 9px;
-white-space: pre-wrap;
 word-break: break-word;
+}
+
+#statusText {
+white-space: pre-wrap;
 }
 
 .status.hidden {
@@ -163,4 +166,81 @@ button {
 }
 
 
+}
+
+.format-picker {
+border: 0;
+margin: 18px 0 0;
+padding: 0;
+display: flex;
+flex-wrap: wrap;
+align-items: center;
+gap: 10px 22px;
+}
+
+.format-picker legend {
+float: left;
+margin-right: 6px;
+padding: 0;
+font-weight: 600;
+}
+
+.radio {
+display: inline-flex;
+align-items: center;
+gap: 8px;
+margin: 0;
+font-weight: 600;
+cursor: pointer;
+}
+
+.radio input {
+flex: none;
+width: 18px;
+height: 18px;
+margin: 0;
+padding: 0;
+accent-color: #20242a;
+cursor: pointer;
+}
+
+.radio input:disabled,
+.radio input:disabled + span {
+cursor: wait;
+opacity: 0.6;
+}
+
+.radio small {
+font-weight: 400;
+color: #66707a;
+}
+
+.progress {
+margin-top: 10px;
+height: 8px;
+background: #d6dde5;
+border-radius: 999px;
+overflow: hidden;
+}
+
+.progress.hidden {
+display: none;
+}
+
+.progress-bar {
+height: 100%;
+width: 0;
+background: #20242a;
+border-radius: 999px;
+transition: width 0.3s ease;
+}
+
+.progress-detail {
+margin-top: 6px;
+font-size: 13px;
+color: #66707a;
+}
+
+.progress-detail:empty {
+display: none;
 }
