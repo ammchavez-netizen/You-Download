@@ -28,9 +28,27 @@
                         Download
                     </button>
                 </div>
+
+                <fieldset class="format-picker">
+                    <legend>Download as</legend>
+                    <label class="radio">
+                        <input type="radio" name="format" value="mp4" checked>
+                        <span>MP4 <small>video</small></span>
+                    </label>
+                    <label class="radio">
+                        <input type="radio" name="format" value="mp3">
+                        <span>MP3 <small>audio only</small></span>
+                    </label>
+                </fieldset>
             </form>
 
-            <div id="status" class="status hidden"></div>
+            <div id="status" class="status hidden">
+                <div id="statusText"></div>
+                <div id="progressWrap" class="progress hidden">
+                    <div id="progressBar" class="progress-bar"></div>
+                </div>
+                <div id="progressDetail" class="progress-detail"></div>
+            </div>
 
             <div class="output">
                 <strong>Download folder</strong>
@@ -49,25 +67,79 @@
         const input = document.getElementById("youtubeUrl");
         const button = document.getElementById("downloadButton");
         const status = document.getElementById("status");
+        const statusText = document.getElementById("statusText");
+        const progressWrap = document.getElementById("progressWrap");
+        const progressBar = document.getElementById("progressBar");
+        const progressDetail = document.getElementById("progressDetail");
+        const formatRadios = form.querySelectorAll('input[name="format"]');
 
-        function showStatus(message, type) {
-            status.textContent = message;
+        const sleep = (ms) => new Promise((resolve) => setTimeout(resolve, ms));
+
+        function showStatus(message, type, progress = null) {
+            statusText.textContent = message;
             status.className = "status " + type;
+
+            if (progress && progress.percent != null) {
+                progressWrap.classList.remove("hidden");
+                progressBar.style.width = progress.percent + "%";
+
+                const parts = [];
+                if (progress.stream) parts.push(progress.stream + " stream");
+                parts.push(progress.percent.toFixed(1) + "%");
+                if (progress.total) parts.push(progress.downloaded + " of " + progress.total);
+                if (progress.speed) parts.push(progress.speed);
+                if (progress.eta) parts.push("ETA " + progress.eta);
+                progressDetail.textContent = parts.join(" · ");
+            } else {
+                progressWrap.classList.add("hidden");
+                progressDetail.textContent = "";
+            }
+        }
+
+        function setBusy(busy) {
+            button.disabled = busy;
+            button.textContent = busy ? "Downloading..." : "Download";
+            formatRadios.forEach((radio) => { radio.disabled = busy; });
+        }
+
+        function describe(job) {
+            if (job.progress) {
+                const name = job.title ? `"${job.title}"` : "video";
+                return `Downloading ${name} as ${job.format}...`;
+            }
+            return job.message || `Working on ${job.format} download...`;
+        }
+
+        async function watchJob(jobId) {
+            while (true) {
+                await sleep(500);
+                const response = await fetch(`/progress/${jobId}`);
+                const job = await response.json();
+
+                if (!response.ok) {
+                    throw new Error(job.message || "Lost track of the download.");
+                }
+                if (job.finished) {
+                    if (!job.success) throw new Error(job.message || "Download failed.");
+                    return job;
+                }
+                showStatus(describe(job), "working", job.progress);
+            }
         }
 
         form.addEventListener("submit", async (event) => {
             event.preventDefault();
 
             const url = input.value.trim();
+            const format = form.querySelector('input[name="format"]:checked').value;
 
             if (!url) {
                 showStatus("Please enter a YouTube URL.", "error");
                 return;
             }
 
-            button.disabled = true;
-            button.textContent = "Downloading...";
-            showStatus("Starting download. This may take a while...", "working");
+            setBusy(true);
+            showStatus(`Starting ${format.toUpperCase()} download. This may take a while...`, "working");
 
             try {
                 const response = await fetch("/download", {
@@ -75,7 +147,7 @@
                     headers: {
                         "Content-Type": "application/json"
                     },
-                    body: JSON.stringify({ url })
+                    body: JSON.stringify({ url, format })
                 });
 
                 const data = await response.json();
@@ -84,12 +156,12 @@
                     throw new Error(data.message || "Download failed.");
                 }
 
-                showStatus(data.message, "success");
+                const job = await watchJob(data.job_id);
+                showStatus(job.message, "success");
             } catch (error) {
                 showStatus(error.message, "error");
             } finally {
-                button.disabled = false;
-                button.textContent = "Download";
+                setBusy(false);
             }
         });
     </script>
