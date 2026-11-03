@@ -18,6 +18,7 @@ to download and use.
 import json
 import os
 import shutil
+import subprocess
 import sys
 import tempfile
 import time
@@ -91,11 +92,75 @@ def build_options(work_path: Path, fmt: str) -> dict:
         })
     else:
         options.update({
-            "format": "bv*+ba/b",
+            # Prefer H.264 video + AAC audio. YouTube's "best" streams are often
+            # AV1 or VP9, which play in most media players but show a black
+            # screen in vMix and other broadcast/editing software.
+            "format": (
+                "bv*[vcodec^=avc1]+ba[acodec^=mp4a]"
+                "/bv*[vcodec^=avc1]+ba"
+                "/b[vcodec^=avc1]"
+                "/bv*+ba/b"
+            ),
             "merge_output_format": "mp4",
         })
 
     return options
+
+
+def probe_codecs(path: Path) -> tuple:
+    """Return (video_codec, audio_codec, pixel_format) using ffprobe."""
+    def probe(stream, entries):
+        result = subprocess.run(
+            ["ffprobe", "-v", "error", "-select_streams", stream,
+             "-show_entries", f"stream={entries}", "-of", "default=nw=1:nk=1", str(path)],
+            capture_output=True, text=True,
+        )
+        return [line.strip() for line in result.stdout.splitlines() if line.strip()]
+
+    video = probe("v:0", "codec_name,pix_fmt")
+    audio = probe("a:0", "codec_name")
+    return (video[0] if video else None,
+            audio[0] if audio else None,
+            video[1] if len(video) > 1 else None)
+
+
+def ensure_compatible_mp4(path: Path, title: str, label: str, duration) -> None:
+    """Re-encode to H.264 (8-bit) + AAC if the download isn't already, so the
+    MP4 works in vMix. Only runs when YouTube had no H.264 version."""
+    vcodec, acodec, pix_fmt = probe_codecs(path)
+    video_ok = vcodec in (None, "h264") and pix_fmt in (None, "yuv420p", "yuvj420p")
+    audio_ok = acodec in (None, "aac")
+    if video_ok and audio_ok:
+        return
+
+    emit(type="status", title=title, format=label,
+         message="Converting to H.264/AAC for vMix compatibility (this can take a while)...")
+
+    temp_out = path.with_name(path.stem + ".h264-tmp.mp4")
+    cmd = ["ffmpeg", "-y", "-v", "error", "-i", str(path)]
+    cmd += (["-c:v", "copy"] if video_ok else
+            ["-c:v", "libx264", "-preset", "veryfast", "-crf", "18", "-pix_fmt", "yuv420p"])
+    cmd += (["-c:a", "copy"] if audio_ok else ["-c:a", "aac", "-b:a", "192k"])
+    cmd += ["-movflags", "+faststart", "-progress", "pipe:1", "-nostats", str(temp_out)]
+
+    proc = subprocess.Popen(cmd, stdout=subprocess.PIPE, stderr=subprocess.PIPE,
+                            text=True, errors="replace")
+    last = -1
+    for line in proc.stdout:
+        key, _, value = line.strip().partition("=")
+        if key == "out_time_us" and duration and value.isdigit():
+            percent = min(round(int(value) / 1e6 * 100 / duration, 1), 100.0)
+            if int(percent) != last:
+                last = int(percent)
+                emit(type="progress", title=title, format=label, stream="converting",
+                     percent=percent, downloaded="", total="", speed="", eta="")
+    stderr = proc.stderr.read()
+    if proc.wait() != 0:
+        temp_out.unlink(missing_ok=True)
+        raise RuntimeError(f"Could not convert to H.264: {stderr.strip()[-300:]}")
+
+    os.replace(temp_out, path)
+    emit(type="status", title=title, format=label, message="Conversion finished.")
 
 
 def download_video(url: str, output_dir, fmt: str = "mp4") -> None:
@@ -195,6 +260,9 @@ def _run(url, output_path, fmt, label, state, temp_dir, progress_hook, postproce
     downloads = info.get("requested_downloads") or []
     filepath = downloads[0].get("filepath") if downloads else None
     filename = Path(filepath).name if filepath else f"{state['title']}.{fmt}"
+
+    if fmt == "mp4" and filepath and Path(filepath).exists():
+        ensure_compatible_mp4(Path(filepath), state["title"], label, info.get("duration"))
 
     if temp_dir and filepath:
         destination = output_path / filename
