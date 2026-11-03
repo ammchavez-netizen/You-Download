@@ -84,7 +84,8 @@
                 progressBar.style.width = progress.percent + "%";
 
                 const parts = [];
-                if (progress.stream) parts.push(progress.stream + " stream");
+                if (progress.stream === "converting") parts.push("converting");
+                else if (progress.stream) parts.push(progress.stream + " stream");
                 parts.push(progress.percent.toFixed(1) + "%");
                 if (progress.total) parts.push(progress.downloaded + " of " + progress.total);
                 if (progress.speed) parts.push(progress.speed);
@@ -103,7 +104,7 @@
         }
 
         function describe(job) {
-            if (job.progress) {
+            if (job.progress && job.progress.stream !== "converting") {
                 const name = job.title ? `"${job.title}"` : "video";
                 return `Downloading ${name} as ${job.format}...`;
             }

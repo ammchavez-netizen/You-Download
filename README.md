@@ -52,7 +52,9 @@ Optional:
 
 Paste a YouTube URL into the webpage, choose a format, and click Download.
 
-- **MP4** (default): video with audio
+- **MP4** (default): H.264 video + AAC audio, which works in vMix and
+  other broadcast/editing software. If a video has no H.264 version on
+  YouTube, it is converted after downloading.
 - **MP3**: audio only (converted with FFmpeg)
 
 While downloading, the page shows the video's title, the chosen format,
