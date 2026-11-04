@@ -8,6 +8,17 @@ import re
 import threading
 import time
 import uuid
+import logging
+
+# Suppress the Werkzeug request logs (the GET / HTTP/1.1 lines)
+log = logging.getLogger('werkzeug')
+log.setLevel(logging.ERROR)
+
+# Suppress the Flask/Werkzeug startup banner completely
+import werkzeug.serving
+werkzeug.serving._log = lambda type, message, *args: None
+# -----------------------------------------
+
 
 app = Flask(__name__)
 
@@ -171,3 +182,5 @@ def progress(job_id):
 
 if __name__ == "__main__":
     app.run(host="127.0.0.1", port=5000, debug=False)
+
+
