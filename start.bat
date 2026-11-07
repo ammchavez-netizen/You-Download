@@ -9,13 +9,13 @@ if not exist ".venv\Scripts\python.exe" (
 )
 
 echo Fetching updates from remote repo...
-git fetch origin main >nul 2>&1
+git fetch origin main --quiet
 
 :: Check if the local main branch is behind the remote main branch
 for /f "tokens=*" %%i in ('git rev-list --count main..origin/main') do set BEHIND=%%i
 
 if "%BEHIND%"=="0" (
-    echo Your app is up to date.
+    echo Your app is up to date!
 ) else (
     echo Update found! Pulling the latest changes...
     git pull origin main >nul 2>&1
